@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: carstool-db
+    environment:
+      POSTGRES_USER: carstool
+      POSTGRES_PASSWORD: carstool
+      POSTGRES_DB: carstool
+    ports:
+      - "55432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    container_name: carstool-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: carstool-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://carstool:carstool@db:5432/carstool
+    depends_on:
+      - db
+
+volumes:
+  db_data:
