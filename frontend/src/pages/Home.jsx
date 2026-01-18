@@ -21,7 +21,8 @@ export default function Home({ onSelectVehicle }) {
     return (
       v.make?.toLowerCase().includes(q) ||
       v.model?.toLowerCase().includes(q) ||
-      String(v.year).includes(q)
+      String(v.year_start).includes(q) ||
+      String(v.year_end).includes(q)
     );
   });
 
@@ -36,7 +37,7 @@ export default function Home({ onSelectVehicle }) {
   return (
     <section className="space-y-10 py-10">
 
-      {}
+      {/* Header */}
       <div className="space-y-4">
         <h1 className="text-5xl font-bold text-neutral-50 tracking-tight">
           Carstool
@@ -47,7 +48,7 @@ export default function Home({ onSelectVehicle }) {
         </p>
       </div>
 
-      {}
+      {/* Search */}
       <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
         <div className="relative flex-1">
           <Search
@@ -72,7 +73,7 @@ export default function Home({ onSelectVehicle }) {
         </div>
       </div>
 
-      {}
+      {/* Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((v) => (
           <VehicleCard

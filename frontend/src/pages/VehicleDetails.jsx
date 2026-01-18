@@ -80,6 +80,10 @@ export default function VehicleDetails({ vehicleId, onBack }) {
     );
   }
 
+  // Format year display
+  const yearDisplay = vehicle.year_start === vehicle.year_end 
+    ? vehicle.year_start 
+    : `${vehicle.year_start}-${vehicle.year_end}`;
   
   const trims = vehicle.trims || [];
   const engines = vehicle.engines || [];
@@ -89,7 +93,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
 
   return (
     <section className="space-y-8 py-10">
-      {}
+      {/* Back button + Header */}
       <div className="flex flex-col gap-4">
         <button
           onClick={onBack}
@@ -104,7 +108,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
 
         <div className="space-y-3">
           <h1 className="text-3xl sm:text-4xl font-bold text-neutral-50 tracking-tight">
-            {vehicle.year} {vehicle.make} {vehicle.model}
+            {yearDisplay} {vehicle.make} {vehicle.model}
           </h1>
           <div className="flex flex-wrap gap-2">
             {drivetrains.length > 0 && drivetrains.map((dt, i) => (
@@ -119,11 +123,11 @@ export default function VehicleDetails({ vehicleId, onBack }) {
         </div>
       </div>
 
-      {}
+      {/* Two-column layout */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {}
+        {/* Left column */}
         <div className="space-y-6">
-          {}
+          {/* Overview card */}
           <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
             <h2 className="text-sm font-semibold text-neutral-100 mb-4 tracking-tight flex items-center gap-2">
               <Gauge size={16} className="text-amber-400" />
@@ -132,8 +136,8 @@ export default function VehicleDetails({ vehicleId, onBack }) {
 
             <div className="space-y-3 text-sm text-neutral-300">
               <div className="flex justify-between">
-                <span className="text-neutral-500">Year</span>
-                <span>{vehicle.year}</span>
+                <span className="text-neutral-500">Years</span>
+                <span>{yearDisplay}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-500">Make</span>
@@ -192,9 +196,9 @@ export default function VehicleDetails({ vehicleId, onBack }) {
           </div>
         </div>
 
-        {}
+        {/* Right column */}
         <div className="space-y-6">
-          {}
+          {/* Maintenance card */}
           <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
             <h2 className="text-sm font-semibold text-neutral-100 mb-4 tracking-tight flex items-center gap-2">
               <Wrench size={16} className="text-amber-400" />
@@ -247,7 +251,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
             )}
           </div>
 
-          {}
+          {/* Issues card */}
           <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
             <h2 className="text-sm font-semibold text-neutral-100 mb-4 tracking-tight flex items-center gap-2">
               <AlertCircle size={16} className="text-amber-400" />
@@ -298,7 +302,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
         </div>
       </div>
 
-      {}
+      {/* Custom scrollbar styles */}
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

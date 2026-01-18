@@ -1,4 +1,9 @@
 export default function VehicleCard({ vehicle, onClick }) {
+
+  const yearDisplay = vehicle.year_start === vehicle.year_end 
+    ? vehicle.year_start 
+    : `${vehicle.year_start}-${vehicle.year_end}`;
+
   return (
     <button
       onClick={onClick}
@@ -11,7 +16,7 @@ export default function VehicleCard({ vehicle, onClick }) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 mb-1">
-            {vehicle.year}
+            {yearDisplay}
           </div>
 
           <div className="text-xl font-semibold text-neutral-50 tracking-tight">
