@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { fetchVehicle } from "../api/vehicles";
 
-const BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 async function fetchRecalls(vehicleId) {
   const r = await fetch(`${BASE}/vehicles/${vehicleId}/recalls`);

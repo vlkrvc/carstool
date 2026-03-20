@@ -1,5 +1,5 @@
 // src/api/auth.js
-const BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function authHeaders(token) {
   return {
