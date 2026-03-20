@@ -4,3 +4,6 @@ asyncpg
 sqlalchemy
 pydantic
 python-dotenv
+bcrypt
+pyjwt
+httpx

@@ -17,13 +17,21 @@ export default function Home({ onSelectVehicle }) {
   }, []);
 
   const filtered = vehicles.filter((v) => {
-    const q = query.toLowerCase();
-    return (
-      v.make?.toLowerCase().includes(q) ||
-      v.model?.toLowerCase().includes(q) ||
-      String(v.year_start).includes(q) ||
-      String(v.year_end).includes(q)
-    );
+    const parts = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return true;
+
+    return parts.every((part) => {
+      const yearNum = parseInt(part);
+      const matchesYear = !isNaN(yearNum) && part.length === 4
+        ? yearNum >= v.year_start && yearNum <= v.year_end
+        : false;
+
+      return (
+        v.make?.toLowerCase().includes(part) ||
+        v.model?.toLowerCase().includes(part) ||
+        matchesYear
+      );
+    });
   });
 
   if (loading) {

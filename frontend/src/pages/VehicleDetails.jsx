@@ -5,23 +5,26 @@ import {
   AlertCircle,
   Gauge,
   Zap,
+  ShieldAlert,
 } from "lucide-react";
 import { fetchVehicle } from "../api/vehicles";
 
+const BASE = "http://localhost:8000";
+
+async function fetchRecalls(vehicleId) {
+  const r = await fetch(`${BASE}/vehicles/${vehicleId}/recalls`);
+  if (!r.ok) throw new Error("Failed to fetch recalls");
+  return r.json();
+}
+
 function Badge({ children, tone = "neutral" }) {
   const tones = {
-    neutral:
-      "border-neutral-700/80 bg-neutral-900/60 text-neutral-300",
-    subtle:
-      "border-neutral-800/60 bg-neutral-900/40 text-neutral-400",
-    amber:
-      "border-amber-400/40 bg-amber-500/10 text-amber-300",
+    neutral: "border-neutral-700/80 bg-neutral-900/60 text-neutral-300",
+    subtle:  "border-neutral-800/60 bg-neutral-900/40 text-neutral-400",
+    amber:   "border-amber-400/40 bg-amber-500/10 text-amber-300",
   };
-
   return (
-    <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.15em] font-medium backdrop-blur-sm ${tones[tone]}`}
-    >
+    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.15em] font-medium backdrop-blur-sm ${tones[tone]}`}>
       {children}
     </span>
   );
@@ -29,6 +32,8 @@ function Badge({ children, tone = "neutral" }) {
 
 export default function VehicleDetails({ vehicleId, onBack }) {
   const [vehicle, setVehicle] = useState(null);
+  const [recalls, setRecalls] = useState([]);
+  const [recallsLoading, setRecallsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -36,12 +41,13 @@ export default function VehicleDetails({ vehicleId, onBack }) {
     if (!vehicleId) return;
 
     setLoading(true);
+    setRecallsLoading(true);
     setError("");
 
+    // Load vehicle data
     (async () => {
       try {
         const data = await fetchVehicle(vehicleId);
-        console.log("Vehicle data:", data); 
         setVehicle(data);
       } catch (err) {
         console.error(err);
@@ -50,6 +56,13 @@ export default function VehicleDetails({ vehicleId, onBack }) {
         setLoading(false);
       }
     })();
+
+    // Load recalls separately so they don't block the page
+    fetchRecalls(vehicleId)
+      .then(setRecalls)
+      .catch(() => setRecalls([]))
+      .finally(() => setRecallsLoading(false));
+
   }, [vehicleId]);
 
   if (!vehicleId) return null;
@@ -69,10 +82,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
           onClick={onBack}
           className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-neutral-500 hover:text-amber-300 transition-colors font-medium"
         >
-          <ArrowLeft
-            size={12}
-            className="group-hover:-translate-x-1 transition-transform"
-          />
+          <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform"/>
           Back
         </button>
         <p className="text-sm text-red-300">{error || "Vehicle not found."}</p>
@@ -80,16 +90,15 @@ export default function VehicleDetails({ vehicleId, onBack }) {
     );
   }
 
-  // Format year display
-  const yearDisplay = vehicle.year_start === vehicle.year_end 
-    ? vehicle.year_start 
+  const yearDisplay = vehicle.year_start === vehicle.year_end
+    ? vehicle.year_start
     : `${vehicle.year_start}-${vehicle.year_end}`;
-  
+
   const trims = vehicle.trims || [];
   const engines = vehicle.engines || [];
   const drivetrains = vehicle.drivetrains || [];
   const maintenance = vehicle.maintenance || [];
-  const issues = vehicle.issues || []; 
+  const issues = vehicle.issues || [];
 
   return (
     <section className="space-y-8 py-10">
@@ -99,10 +108,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
           onClick={onBack}
           className="group flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-neutral-500 hover:text-amber-300 transition-colors font-medium w-fit"
         >
-          <ArrowLeft
-            size={12}
-            className="group-hover:-translate-x-1 transition-transform"
-          />
+          <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform"/>
           Back to results
         </button>
 
@@ -119,6 +125,12 @@ export default function VehicleDetails({ vehicleId, onBack }) {
                 {trims.length} trim{trims.length > 1 ? "s" : ""}
               </Badge>
             )}
+            {!recallsLoading && recalls.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.15em] font-medium text-red-300">
+                <ShieldAlert size={10} />
+                {recalls.length} recall{recalls.length > 1 ? "s" : ""}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -130,7 +142,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
           {/* Overview card */}
           <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
             <h2 className="text-sm font-semibold text-neutral-100 mb-4 tracking-tight flex items-center gap-2">
-              <Gauge size={16} className="text-amber-400" />
+              <Gauge size={16} className="text-amber-400"/>
               Overview
             </h2>
 
@@ -158,18 +170,13 @@ export default function VehicleDetails({ vehicleId, onBack }) {
             {engines.length > 0 && (
               <div className="mt-5 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-neutral-400 uppercase tracking-[0.16em]">
-                  <Zap size={14} className="text-amber-400" />
+                  <Zap size={14} className="text-amber-400"/>
                   Powertrain Options
                 </div>
                 <div className="space-y-2">
                   {engines.map((e, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl bg-neutral-950/60 border border-neutral-800/40 px-4 py-3 text-sm"
-                    >
-                      <div className="text-neutral-100 font-medium">
-                        {e.engine_name}
-                      </div>
+                    <div key={i} className="rounded-2xl bg-neutral-950/60 border border-neutral-800/40 px-4 py-3 text-sm">
+                      <div className="text-neutral-100 font-medium">{e.engine_name}</div>
                     </div>
                   ))}
                 </div>
@@ -183,14 +190,57 @@ export default function VehicleDetails({ vehicleId, onBack }) {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {trims.map((t, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1.5 rounded-full bg-neutral-950/60 border border-neutral-800/40 text-xs text-neutral-300"
-                    >
+                    <span key={i} className="px-3 py-1.5 rounded-full bg-neutral-950/60 border border-neutral-800/40 text-xs text-neutral-300">
                       {t.trim_name}
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* NHTSA Recalls card */}
+          <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
+            <h2 className="text-sm font-semibold text-neutral-100 mb-1 tracking-tight flex items-center gap-2">
+              <ShieldAlert size={16} className="text-red-400"/>
+              NHTSA Safety Recalls
+            </h2>
+            <p className="text-[10px] text-neutral-600 mb-4 uppercase tracking-[0.16em]">
+              Live data from api.nhtsa.gov
+            </p>
+
+            {recallsLoading ? (
+              <p className="text-xs text-neutral-500">Fetching recall data…</p>
+            ) : recalls.length === 0 ? (
+              <div className="flex items-center gap-2 text-xs text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block flex-shrink-0"/>
+                No open recalls found for this vehicle
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+                {recalls.map((r, i) => (
+                  <div key={i} className="rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-3.5">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <span className="font-medium text-neutral-100 text-sm leading-snug">{r.component}</span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full border border-red-500/40 bg-red-500/10 text-red-300 uppercase tracking-wider font-medium whitespace-nowrap flex-shrink-0">
+                        {r.campaign_number}
+                      </span>
+                    </div>
+                    <p className="text-xs text-neutral-400 leading-relaxed mb-2">{r.summary}</p>
+                    {r.consequence && (
+                      <p className="text-xs text-amber-300/80 leading-relaxed mb-1">
+                        <span className="font-medium text-amber-300">Risk: </span>
+                        {r.consequence}
+                      </p>
+                    )}
+                    {r.remedy && (
+                      <p className="text-xs text-emerald-300/80 leading-relaxed">
+                        <span className="font-medium text-emerald-300">Remedy: </span>
+                        {r.remedy}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -201,7 +251,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
           {/* Maintenance card */}
           <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
             <h2 className="text-sm font-semibold text-neutral-100 mb-4 tracking-tight flex items-center gap-2">
-              <Wrench size={16} className="text-amber-400" />
+              <Wrench size={16} className="text-amber-400"/>
               Maintenance Schedule
             </h2>
 
@@ -211,42 +261,28 @@ export default function VehicleDetails({ vehicleId, onBack }) {
               </p>
             ) : (
               <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-                {maintenance.map((m, i) => {
-                  return (
-                    <div
-                      key={i}
-                      className="rounded-2xl border border-neutral-800/40 bg-neutral-950/60 px-4 py-3.5 backdrop-blur-sm"
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="text-sm font-medium text-neutral-50">
-                          {m.name}
-                        </div>
-                      </div>
-
-                      {m.details && (
-                        <div className="text-xs text-neutral-400 mb-2 leading-relaxed">
-                          {m.details}
-                        </div>
-                      )}
-
-                      <div className="text-[11px] text-neutral-500 flex flex-wrap gap-2">
-                        {m.interval_miles && (
-                          <span>
-                            Every {m.interval_miles.toLocaleString()} mi
-                          </span>
-                        )}
-                        {m.interval_miles && m.interval_months && (
-                          <span>•</span>
-                        )}
-                        {m.interval_months && (
-                          <span>
-                            Every {m.interval_months} months
-                          </span>
-                        )}
-                      </div>
+                {maintenance.map((m, i) => (
+                  <div key={i} className="rounded-2xl border border-neutral-800/40 bg-neutral-950/60 px-4 py-3.5 backdrop-blur-sm">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="text-sm font-medium text-neutral-50">{m.name}</div>
                     </div>
-                  );
-                })}
+                    {m.notes && (
+                      <div className="text-xs text-amber-300/90 mb-2 leading-relaxed font-medium">
+                        {m.notes}
+                      </div>
+                    )}
+                    {m.details && (
+                      <div className="text-xs text-neutral-500 mb-2 leading-relaxed">
+                        {m.details}
+                      </div>
+                    )}
+                    <div className="text-[11px] text-neutral-500 flex flex-wrap gap-2">
+                      {m.interval_miles && <span>Every {m.interval_miles.toLocaleString()} mi</span>}
+                      {m.interval_miles && m.interval_months && <span>•</span>}
+                      {m.interval_months && <span>Every {m.interval_months} months</span>}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -254,7 +290,7 @@ export default function VehicleDetails({ vehicleId, onBack }) {
           {/* Issues card */}
           <div className="rounded-3xl border border-neutral-800/60 bg-gradient-to-br from-neutral-900/40 to-neutral-900/60 p-6 backdrop-blur-sm shadow-xl">
             <h2 className="text-sm font-semibold text-neutral-100 mb-4 tracking-tight flex items-center gap-2">
-              <AlertCircle size={16} className="text-amber-400" />
+              <AlertCircle size={16} className="text-amber-400"/>
               Common Issues
             </h2>
 
@@ -267,31 +303,21 @@ export default function VehicleDetails({ vehicleId, onBack }) {
                 {issues.map((issue, idx) => {
                   const sev = (issue.severity || "").toLowerCase();
                   const sevStyles = {
-                    high: "text-red-300 border-red-500/40 bg-red-500/10",
+                    high:   "text-red-300 border-red-500/40 bg-red-500/10",
                     medium: "text-amber-300 border-amber-400/40 bg-amber-500/10",
-                    low: "text-emerald-300 border-emerald-400/40 bg-emerald-500/10",
+                    low:    "text-emerald-300 border-emerald-400/40 bg-emerald-500/10",
                   };
                   const sevLabel = sev.charAt(0).toUpperCase() + sev.slice(1) || "Info";
-
                   return (
-                    <div
-                      key={idx}
-                      className="rounded-2xl border border-neutral-800/40 bg-neutral-950/60 px-4 py-3 backdrop-blur-sm"
-                    >
+                    <div key={idx} className="rounded-2xl border border-neutral-800/40 bg-neutral-950/60 px-4 py-3 backdrop-blur-sm">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <span className="font-medium text-neutral-100 text-sm">
-                          {issue.issue}
-                        </span>
-                        <span
-                          className={`text-[9px] px-2 py-0.5 rounded-full border uppercase tracking-wider font-medium ${sevStyles[sev] || "border-neutral-700/70 text-neutral-300 bg-neutral-900/60"}`}
-                        >
+                        <span className="font-medium text-neutral-100 text-sm">{issue.issue}</span>
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full border uppercase tracking-wider font-medium ${sevStyles[sev] || "border-neutral-700/70 text-neutral-300 bg-neutral-900/60"}`}>
                           {sevLabel}
                         </span>
                       </div>
                       {issue.details && (
-                        <div className="text-xs text-neutral-400 leading-relaxed">
-                          {issue.details}
-                        </div>
+                        <div className="text-xs text-neutral-400 leading-relaxed">{issue.details}</div>
                       )}
                     </div>
                   );
@@ -302,22 +328,11 @@ export default function VehicleDetails({ vehicleId, onBack }) {
         </div>
       </div>
 
-      {/* Custom scrollbar styles */}
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(23, 23, 23, 0.4);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(115, 115, 115, 0.5);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(163, 163, 163, 0.7);
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(23,23,23,0.4); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(115,115,115,0.5); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(163,163,163,0.7); }
       `}</style>
     </section>
   );
