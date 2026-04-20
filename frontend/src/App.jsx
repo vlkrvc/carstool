@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -12,9 +13,14 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [page, setPage] = useState("home");
   const [authPage, setAuthPage] = useState("login");
+  const isPopState = useRef(false);
 
-  // Push state to browser history when navigation changes
+  // Push to browser history only when user navigates (not on popstate)
   useEffect(() => {
+    if (isPopState.current) {
+      isPopState.current = false;
+      return;
+    }
     const state = { page, selectedId };
     const url = selectedId
       ? `/?vehicle=${selectedId}`
@@ -24,9 +30,10 @@ export default function App() {
     window.history.pushState(state, "", url);
   }, [page, selectedId]);
 
-  // Listen for browser back/forward button
+  // Handle browser back/forward
   useEffect(() => {
     const handlePop = (e) => {
+      isPopState.current = true;
       if (e.state) {
         setPage(e.state.page || "home");
         setSelectedId(e.state.selectedId || null);
@@ -39,22 +46,18 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
 
-  // Navigate to a page
   const navigateTo = (newPage) => {
     setSelectedId(null);
     setPage(newPage);
   };
 
-  // Select a vehicle
   const selectVehicle = (id) => {
     setSelectedId(id);
     setPage("home");
   };
 
-  // Go back to browse
   const goBack = () => {
-    setSelectedId(null);
-    setPage("home");
+    window.history.back();
   };
 
   if (loading) {
@@ -67,14 +70,8 @@ export default function App() {
 
   if (!user && page === "garage") {
     return authPage === "login"
-      ? <Login
-          onSwitchToRegister={() => setAuthPage("register")}
-          onBack={() => navigateTo("home")}
-        />
-      : <Register
-          onSwitchToLogin={() => setAuthPage("login")}
-          onBack={() => navigateTo("home")}
-        />;
+      ? <Login onSwitchToRegister={() => setAuthPage("register")} onBack={() => navigateTo("home")} />
+      : <Register onSwitchToLogin={() => setAuthPage("login")} onBack={() => navigateTo("home")} />;
   }
 
   return (
@@ -84,10 +81,7 @@ export default function App() {
         {page === "garage" ? (
           <Garage />
         ) : selectedId ? (
-          <VehicleDetails
-            vehicleId={selectedId}
-            onBack={goBack}
-          />
+          <VehicleDetails vehicleId={selectedId} onBack={goBack} />
         ) : (
           <Home onSelectVehicle={selectVehicle} />
         )}

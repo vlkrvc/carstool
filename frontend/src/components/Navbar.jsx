@@ -1,7 +1,7 @@
-// src/components/Navbar.jsx
+
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Car, Search, LogOut, Menu, X } from "lucide-react";
+import { Car, LogOut, Menu, X } from "lucide-react";
 import Logo from "./Logo";
 
 export default function Navbar({ page, onNavigate }) {
@@ -26,18 +26,6 @@ export default function Navbar({ page, onNavigate }) {
 
         {/* Desktop nav */}
         <div className="hidden sm:flex items-center gap-2">
-          <button
-            onClick={() => handleNav("home")}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-              page === "home"
-                ? "text-neutral-100 bg-neutral-800/60"
-                : "text-neutral-500 hover:text-neutral-300"
-            }`}
-          >
-            <Search size={14} />
-            Browse
-          </button>
-
           <button
             onClick={() => handleNav("garage")}
             className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
@@ -65,7 +53,7 @@ export default function Navbar({ page, onNavigate }) {
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile nav */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="sm:hidden p-2 rounded-xl text-neutral-500 hover:text-neutral-200 transition-colors"
@@ -74,21 +62,9 @@ export default function Navbar({ page, onNavigate }) {
         </button>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile dropdown */}
       {menuOpen && (
         <div className="sm:hidden border-t border-neutral-900/60 bg-neutral-950/95 backdrop-blur-xl px-4 py-4 space-y-2">
-          <button
-            onClick={() => handleNav("home")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
-              page === "home"
-                ? "text-neutral-100 bg-neutral-800/60"
-                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/30"
-            }`}
-          >
-            <Search size={16} />
-            Browse Vehicles
-          </button>
-
           <button
             onClick={() => handleNav("garage")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium transition-all ${
