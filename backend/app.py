@@ -604,12 +604,15 @@ async def add_service_log(
     """, garage_id, current_user["id"])
     if not entry:
         raise HTTPException(status_code=404, detail="Garage entry not found")
+    
+    from datetime import date
+    
     log = await fetch_one("""
         INSERT INTO service_log (garage_id, maintenance_id, service_date, mileage, notes, cost)
-        VALUES ($1, $2, $3::date, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id
     """, garage_id, body.maintenance_id,
-        body.service_date, body.mileage, body.notes, body.cost)
+        date.fromisoformat(body.service_date), body.mileage, body.notes, body.cost)
     return {"id": log["id"], "message": "Service logged"}
 
 
