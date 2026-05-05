@@ -57,9 +57,7 @@ app.add_middleware(
 )
 
 
-# ============================================================
 # DB HELPERS
-# ============================================================
 
 async def fetch_all(query: str, *args):
     if not db_pool:
@@ -94,9 +92,9 @@ async def execute(query: str, *args):
             raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
 
 
-# ============================================================
+
 # AUTH HELPERS
-# ============================================================
+
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -127,9 +125,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-# ============================================================
+
 # PYDANTIC MODELS
-# ============================================================
+
 
 class VehicleSummary(BaseModel):
     id: int
@@ -245,9 +243,9 @@ class ServiceLogEntry(BaseModel):
     cost: Optional[float]
 
 
-# ============================================================
+
 # MAINTENANCE DUE CALCULATION
-# ============================================================
+
 
 def calculate_due_status(
     interval_miles: Optional[int],
@@ -266,9 +264,9 @@ def calculate_due_status(
         return miles_until_due, "ok"
 
 
-# ============================================================
+
 # GENERAL ENDPOINTS
-# ============================================================
+
 
 @app.get("/")
 async def root():
@@ -286,9 +284,9 @@ async def health():
         return {"status": "error", "message": str(e)}
 
 
-# ============================================================
+
 # VEHICLE ENDPOINTS
-# ============================================================
+
 
 @app.get("/vehicles", response_model=List[VehicleSummary])
 async def list_vehicles():
@@ -360,9 +358,9 @@ async def get_vehicle(vehicle_id: int):
     )
 
 
-# ============================================================
+
 # NHTSA RECALLS ENDPOINT
-# ============================================================
+
 
 @app.get("/vehicles/{vehicle_id}/recalls", response_model=List[Recall])
 async def get_recalls(vehicle_id: int):
@@ -406,9 +404,9 @@ async def get_recalls(vehicle_id: int):
     return recalls
 
 
-# ============================================================
+
 # AUTH ENDPOINTS
-# ============================================================
+
 
 @app.post("/auth/register", response_model=AuthResponse)
 async def register(body: RegisterRequest):
@@ -443,9 +441,9 @@ async def me(current_user=Depends(get_current_user)):
     return current_user
 
 
-# ============================================================
+
 # GARAGE ENDPOINTS
-# ============================================================
+
 
 @app.get("/garage", response_model=List[GarageEntry])
 async def get_garage(current_user=Depends(get_current_user)):
@@ -560,9 +558,9 @@ async def remove_from_garage(garage_id: int, current_user=Depends(get_current_us
     return {"message": "Vehicle removed from garage"}
 
 
-# ============================================================
+
 # SERVICE LOG ENDPOINTS
-# ============================================================
+
 
 @app.get("/garage/{garage_id}/log", response_model=List[ServiceLogEntry])
 async def get_service_log(garage_id: int, current_user=Depends(get_current_user)):
@@ -606,7 +604,7 @@ async def add_service_log(
         raise HTTPException(status_code=404, detail="Garage entry not found")
     
     from datetime import date
-    
+
     log = await fetch_one("""
         INSERT INTO service_log (garage_id, maintenance_id, service_date, mileage, notes, cost)
         VALUES ($1, $2, $3, $4, $5, $6)
